@@ -10,6 +10,7 @@
   "author": "Risyal Ambiyansyah",
   "license": "ISC",
   "dependencies": {
+    "fs-extra": "^8.1.0",
     "image-downloader": "^3.5.0",
     "images-scraper": "^3.0.1",
     "user-agents": "^1.0.396",
