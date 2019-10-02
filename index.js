@@ -13,7 +13,7 @@ let google    = new Scraper.Google({
     userAgent: userAgent.toString(),
     limit    : argv.limit,
     puppeteer: {
-        headless: false
+        headless: true
     },
     advanced: {
         imgType   : 'photo',   // options: clipart, face, lineart, news, photo
