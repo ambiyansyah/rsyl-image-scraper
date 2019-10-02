@@ -13,7 +13,7 @@ let google = new Scraper.Google({
     userAgent: userAgent.toString(),
     limit: argv.limit,
     puppeteer: {
-        headless: true
+        headless: false
     },
     advanced: {
         imgType: 'photo',   // options: clipart, face, lineart, news, photo
@@ -39,7 +39,10 @@ const downloadImages = async (results) => {
 
             const options = {
                 url: result.url,
-                dest: `${dir}/${imgFilename}`
+                dest: `${dir}/${imgFilename}`,
+                headers: {
+                    'User-Agent': userAgent.toString()
+                }
             }
 
             try {
@@ -56,7 +59,11 @@ const downloadImages = async (results) => {
 }
 
 (async () => {
+    console.log(`searching image links with keyword: ${keyword}`);
     const results = await google.start();      // search images link base on keyword given
+    console.log(`found ${results.length} image links`);
+    
+    console.log(`start download images`);
     const download = await downloadImages(results);  // start to download images
 
     console.log('results', download.length);
