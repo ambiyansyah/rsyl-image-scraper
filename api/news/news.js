@@ -3,6 +3,12 @@
 const fs = require('fs');
 const readArt = require('read-art');
 const htmlToText = require('html-to-text');
+const read = require('node-readability');
+const utl = require('./../../utl/clean');
+const sanitizeHtml = require('sanitize-html');
+const textCleaner = require('text-cleaner');
+const say = require('say');
+const fsExtra = require('fs-extra');
 
 module.exports = {
     async get() {
@@ -12,37 +18,59 @@ module.exports = {
         return articles.articles;
     },
     async content(url) {
-        let response
+        let data = {};
 
         try {
-            readArt(url, function (err, art, options, resp) {
+            read(url, function (err, article, meta) {
                 if (err) {
-                    console.log(err)
-                    return
+                    throw err
                 }
 
-                console.log('[STATUS CODE]', resp && resp.statusCode)
+                const html = sanitizeHtml(article.content);
 
-                let title = art.title
-                let content = art.content
-                let html = art.html
+                readArt(html, function (err, art, options, resp) {
+                    if (err) {
+                        console.log(err);
+                        return data;
+                    }
 
-                const text = htmlToText.fromString(content, {
-                    wordwrap: false,
-                    hideLinkHrefIfSameAsText: true,
-                    ignoreHref: true,
-                    ignoreImage: true,
-                    singleNewLineParagraphs: true
+                    console.log('[STATUS CODE]', resp && resp.statusCode);
 
+                    data.title = article.title
+                    data.content = htmlToText.fromString(art.content, {
+                        wordwrap: false,
+                        hideLinkHrefIfSameAsText: true,
+                        ignoreHref: true,
+                        ignoreImage: true,
+                        singleNewLineParagraphs: true
+                    });
+
+                    data.content = textCleaner(data.content).condense().toLowerCase().stripEmails().valueOf();
+
+                    console.log('=========================');
+                    console.log(data.title);
+                    console.log(data.content);
+                    console.log('=========================');
+
+                    if (data.content) { 
+                        const filename = await utl.stripWord(data.title);
+                        const dir = `./files/news/${filename}`;
+                        
+                        fsExtra.ensureDirSync(filename);
+
+                        say.export(data.content, 'Microsoft Zira Desktop', 1, `${dir}/${filename}.wav`, (err) => {
+                            if (err) {
+                                return console.error(err)
+                            }
+
+                            console.log(`Text has been saved to ${filename}.wav.`)
+                        });
+                    }
+                    
                 });
-                console.log('====================================================');
-                console.log(title)
-                console.log(text)
-                console.log('====================================================');
-
             });
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 }
