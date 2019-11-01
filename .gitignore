@@ -61,4 +61,4 @@ typings/
 .next
 
 # images directory
-images/*
+files/*
