@@ -6,6 +6,7 @@ const clean = require('../../utl/clean');
 const fs = require('fs-extra');
 const path = require('path');
 const download = require('image-downloader');
+const Jimp = require('jimp');
 
 module.exports = {
     async search({
@@ -14,7 +15,6 @@ module.exports = {
         puppeteerOptions = {},
         advanced = {}
     }) {
-        console.log(`searching image links with keyword: ${keyword}`);
         if (keyword === undefined) {
             throw new Error('no keyword provided');
         }
@@ -105,23 +105,22 @@ module.exports = {
         }, limit);
 
         await browser.close();
-        console.log(`Found ${results.length} image links!`);
+
         return results;
     },
     async download({
         keyword,
         results
     }) {
-        let dir = `./files/images/${await clean.stripWord(keyword)}`;
+        let dir = `./files/images/${clean.stripWord(keyword)}`;
         let downloadedFile = [];
 
-        // create directory
         fs.ensureDirSync(dir)
 
         for (let result of results) {
-            if (result.type) {
-                let imgTitle = await clean.cleanWord(result.title)
-                let imgAlt = await clean.stripWord(imgTitle)
+            if (result.type == 'jpg' || result.type == 'png') {
+                let imgTitle = clean.cleanWord(result.title)
+                let imgAlt = clean.stripWord(imgTitle)
                 let imgFilename = imgAlt + '.' + result.type;
 
                 const options = {
@@ -133,11 +132,11 @@ module.exports = {
                 }
 
                 try {
-                    console.log(`download ${result.url}`);
                     const {
                         filename,
                         image
                     } = await download.image(options)
+
                     downloadedFile.push(filename)
                 } catch (error) {
                     console.log(error)
@@ -145,6 +144,18 @@ module.exports = {
             }
         }
 
+        await this.resize(downloadedFile, 800, Jimp.AUTO, 90);
+
         return downloadedFile;
+    },
+    async resize(images, width, height = Jimp.AUTO, quality) {
+        await Promise.all(
+            images.map(async imgPath => {
+                const image = await Jimp.read(imgPath);
+                await image.resize(width, height);
+                await image.quality(quality);
+                await image.writeAsync(imgPath);
+            })
+        );
     }
 }

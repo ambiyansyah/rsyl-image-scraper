@@ -9,68 +9,46 @@ const sanitizeHtml = require('sanitize-html');
 const textCleaner = require('text-cleaner');
 const say = require('say');
 const fsExtra = require('fs-extra');
+const extractor = require('unfluff');
+const request = require('async-request');
+const axios = require('axios');
 
 module.exports = {
-    async get() {
-        let rawdata = fs.readFileSync('./files/news/top-headlines.json');
+    async getNews(file) {
+        let rawdata = fs.readFileSync(file);
         let articles = JSON.parse(rawdata);
 
         return articles.articles;
     },
-    async content(url) {
+    async getContent(articles) {
         let data = {};
 
-        try {
-            read(url, function (err, article, meta) {
-                if (err) {
-                    throw err
+        for (let article of articles) { 
+            try {
+                const response = await axios.get(article.url);
+                
+                if (response) {
+                    const extractData = extractor(response.data);
+
+                    if (extractData.description) {
+                        data[extractData.title] = extractData;
+                    }
                 }
+            } catch (error) {
+                console.error(error);
+                console.error(`cannot get response from ${article.url}`);
+            }
+        }
+        
+        try {
+            const dir = './files/news/data.json';
 
-                const html = sanitizeHtml(article.content);
+            await fsExtra.outputJSON(dir, data);
 
-                readArt(html, function (err, art, options, resp) {
-                    if (err) {
-                        console.log(err);
-                        return data;
-                    }
-
-                    console.log('[STATUS CODE]', resp && resp.statusCode);
-
-                    data.title = article.title
-                    data.content = htmlToText.fromString(art.content, {
-                        wordwrap: false,
-                        hideLinkHrefIfSameAsText: true,
-                        ignoreHref: true,
-                        ignoreImage: true,
-                        singleNewLineParagraphs: true
-                    });
-
-                    data.content = textCleaner(data.content).condense().toLowerCase().stripEmails().valueOf();
-
-                    console.log('=========================');
-                    console.log(data.title);
-                    console.log(data.content);
-                    console.log('=========================');
-
-                    if (data.content) { 
-                        const filename = await utl.stripWord(data.title);
-                        const dir = `./files/news/${filename}`;
-                        
-                        fsExtra.ensureDirSync(filename);
-
-                        say.export(data.content, 'Microsoft Zira Desktop', 1, `${dir}/${filename}.wav`, (err) => {
-                            if (err) {
-                                return console.error(err)
-                            }
-
-                            console.log(`Text has been saved to ${filename}.wav.`)
-                        });
-                    }
-                    
-                });
-            });
+            return data;
         } catch (error) {
-            throw error
+            console.error(error);
+            console.error('cannot save data to json file.');
         }
     }
 }

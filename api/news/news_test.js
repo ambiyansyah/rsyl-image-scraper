@@ -3,10 +3,14 @@
 const news = require('./news');
 
 (async () => { 
-    let articles = await news.get();
-    // let content = await news.content(articles[5].url);
+    // get news list from json file
+    let articles = await news.getNews('./files/news/everything.json');
+    // save content from news link
+    let contents = await news.getContent(articles);
 
-    for (let article of articles) { 
-        await news.content(article.url);
-    }
+    console.log(Object.keys(contents).length);
+
+    // for (let article of articles) {
+    //     await news.content(article);
+    // }
 })();
