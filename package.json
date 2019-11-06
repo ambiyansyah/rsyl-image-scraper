@@ -36,8 +36,10 @@
     "sequelize": "^5.21.2",
     "sequelize-cli": "^5.5.1",
     "text-cleaner": "^0.3.0",
+    "text-to-speech-js": "^1.1.9",
     "unfluff": "^3.2.0",
     "user-agents": "^1.0.396",
+    "videoshow": "^0.1.11",
     "yargs": "^14.0.0"
   }
 }

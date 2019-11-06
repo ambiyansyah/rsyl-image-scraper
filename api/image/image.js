@@ -7,6 +7,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const download = require('image-downloader');
 const Jimp = require('jimp');
+const request = require('async-request');
+const cheerio = require('cheerio');
 
 module.exports = {
     async search({
@@ -106,13 +108,14 @@ module.exports = {
 
         await browser.close();
 
+        console.log(`FOUND ${results.length} links`);
         return results;
     },
     async download({
         keyword,
         results
     }) {
-        let dir = `./files/images/${clean.stripWord(keyword)}`;
+        let dir = `./files/contents/${clean.stripWord(keyword)}`;
         let downloadedFile = [];
 
         fs.ensureDirSync(dir)
@@ -128,10 +131,12 @@ module.exports = {
                     dest: `${dir}/${imgFilename}`,
                     headers: {
                         'User-Agent': randomUserAgent('desktop')
-                    }
+                    },
+                    timeout: 60000
                 }
 
                 try {
+                    console.log(`DOWNLOAD ${options.url}`);
                     const {
                         filename,
                         image
@@ -149,13 +154,59 @@ module.exports = {
         return downloadedFile;
     },
     async resize(images, width, height = Jimp.AUTO, quality) {
-        await Promise.all(
-            images.map(async imgPath => {
-                const image = await Jimp.read(imgPath);
-                await image.resize(width, height);
-                await image.quality(quality);
-                await image.writeAsync(imgPath);
-            })
-        );
+        try {
+            await Promise.all(
+                images.map(async imgPath => {
+                    const image = await Jimp.read(imgPath);
+                    await image.resize(width, height);
+                    await image.quality(quality);
+                    await image.writeAsync(imgPath);
+                })
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    async searchImageLinks(keyword) {
+        let baseURL = `https://www.google.com/search?q=${keyword}&source=lnms&tbm=isch&sa=X&tbs=itp:photo`;
+
+        let response = await request(baseURL, {
+            headers: {
+                'User-Agent': randomUserAgent('desktop')
+            }
+        });
+
+        let $ = cheerio.load(response.body);
+        let results = [];
+
+        $('.rg_l').each((index, element) => {
+            // check if we reached the limit
+            // if (results.length >= limit) {
+            //     return resolve(results);
+            // }
+
+            let meta = JSON.parse($(element).parent().find('.rg_meta').text());
+            let item = {
+                title: meta.pt,
+                alt: meta.st,
+                host: meta.rh,
+                type: meta.ity,
+                width: meta.ow,
+                height: meta.oh,
+                url: meta.ou,
+                thumb_url: meta.tu,
+                thumb_width: meta.tw,
+                thumb_height: meta.th
+            };
+
+            // if (!results.filter(result => result.url === item.url).length) {
+            //     results.push(item);
+            // }
+            results.push(item);
+        });
+
+        console.log(`FOUND ${results.length} links`);
+
+        return results;
     }
 }
