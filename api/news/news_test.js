@@ -3,10 +3,8 @@
 const news = require('./news');
 
 (async () => { 
-    let articles = await news.getNews('./files/news/top-headlines.json');
-    let contents = await news.getContent(articles);
+    let sources = await news.readSource('./files/news/top-headlines.json');
+    let contents = await news.getContent(sources);
 
-    if (contents) {
-        await news.generateAudio('./files/data.json');
-    }
+    console.log(contents.length);
 })();

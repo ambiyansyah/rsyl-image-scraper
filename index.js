@@ -6,12 +6,6 @@ const UserAgent = require('user-agents')
 const download = require('image-downloader')
 const fs = require('fs-extra')
 const utl = require('./utl/clean')
-const request = require('async-request')
-const read = require('read-art')
-const htmlToText = require('html-to-text')
-const say = require('say')
-const path = require('path')
-const imageHandler = require('./handler/imageHandler')
 
 require('dotenv').config()
 
@@ -48,17 +42,6 @@ const downloadImages = async (keyword, results, utl, ua) => {
     }
 
     return downloadedFile;
-}
-
-const getNews = async () => {
-    newsapi.v2.sources({
-        category: 'technology',
-        language: 'en',
-        country: 'us'
-    }).then(response => {
-        console.log(response);
-        return response
-    });
 }
 
 (async () => {
