@@ -4,7 +4,6 @@
 const readArt = require('read-art');
 const htmlToText = require('html-to-text');
 const read = require('node-readability');
-const clean = require('./../../utl/clean');
 const sanitizeHtml = require('sanitize-html');
 const textCleaner = require('text-cleaner');
 const say = require('say');
@@ -49,7 +48,8 @@ module.exports = {
                         // save extracted data to array
                         console.log(`SAVE ${extractData.title}`);
                         // console.log(extractData.text);
-                        data.push(JSON.stringify(extractData));
+                        // data.push(JSON.stringify(extractData));
+                        data.push(extractData);
                     }
                 }
             } catch (error) {
@@ -58,18 +58,19 @@ module.exports = {
             }
         }
 
+        return data;
         // save content to json file
-        try {
-            const dir = './files/data.json';
+        // try {
+        //     const dir = './files/data.json';
 
-            // wait until save to json file is successfully
-            console.log(`save all content data to: ${dir}`);
-            await fs.outputJSON(dir, data);
+        //     // wait until save to json file is successfully
+        //     console.log(`save all content data to: ${dir}`);
+        //     await fs.outputJSON(dir, data);
 
-            return data;
-        } catch (error) {
-            console.error(error);
-            console.error('cannot save data to json file.');
-        }
+        //     return data;
+        // } catch (error) {
+        //     console.error(error);
+        //     console.error('cannot save data to json file.');
+        // }
     }
 }

@@ -2,7 +2,6 @@
 
 const videoshow = require('videoshow');
 const fsExtra = require('fs-extra');
-const clean = require('./../../utl/clean');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
 const utils = require('./../../utils/utils');
@@ -24,7 +23,7 @@ module.exports = {
     async generateSingleVideo(content) { 
         content = JSON.parse(content);
 
-        const keywordSlug = clean.stripWord(content.title);
+        const keywordSlug = await utils.stripWord(content.title);
 
         let images = [];
         try {

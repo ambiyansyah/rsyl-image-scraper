@@ -3,19 +3,19 @@
 const image = require('./image');
 const news = require('../news/news');
 const video = require('../video/video');
-const clean = require('./../../utl/clean');
 const utils = require('./../../utils/utils');
 const fs = require('fs-extra');
 const Jimp = require('jimp');
+const argv = require('yargs').argv;
 
 (async () => {
-    const data = './files/data.json';
+    const data = argv.source;
     const rawData = await fs.readFile(data);
     const contents = JSON.parse(rawData);
     
     let count = 0;
     for (let content of contents) {
-        if (count == 0) { 
+        if (count == 1) { 
             content = JSON.parse(content);
 
             // prepare directories to save the data
@@ -25,11 +25,11 @@ const Jimp = require('jimp');
             // download iamges from search result
             let downloads = await image.downloadImages(images, directories);
             // resize image 
-            let resize = await image.resize(downloads, 800, 600, 90);
+            // let resize = await image.resize(downloads, 800, 600, 90);
             // create audio from content text
             let audio = await utils.textToVoice(content.text, directories);
             // create video from image files
-            let createvideo = await video.create(content, downloads, directories);
+            // let createvideo = await video.create(content, downloads, directories);
         }
 
         count++;

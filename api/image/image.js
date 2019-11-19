@@ -2,7 +2,6 @@
 
 const puppeteer = require('puppeteer');
 const randomUserAgent = require('random-user-agent');
-const clean = require('../../utl/clean');
 const fs = require('fs-extra');
 const path = require('path');
 const download = require('image-downloader');
@@ -113,7 +112,7 @@ module.exports = {
     //     return results;
     // },
     async download(keyword, results) {
-        const keywordSlug = await clean.stripWord(keyword);
+        const keywordSlug = await utils.stripWord(keyword);
         const dir = `./files/contents/${keywordSlug}/images`;
 
         // fs.ensureDirSync(dir)
@@ -122,8 +121,8 @@ module.exports = {
         let downloadedFile = [];
         for (let result of results) {
             if (result.type == 'jpg' || result.type == 'png') {
-                const imageTitle = await clean.cleanWord(result.title);
-                const imageAlt = await clean.stripWord(imageTitle);
+                const imageTitle = await utils.cleanWord(result.title);
+                const imageAlt = await utils.stripWord(imageTitle);
                 const imageFilename = `${imageAlt}.jpg`;
                 const destination = `${dir}/${imageFilename}`;
 
